@@ -1,20 +1,21 @@
-import pyjokes  # Importing the pyjokes module to fetch jokes
-
-# Constants
-PROMPT = "What do you want? "  # Prompt message for the user
-SORRY = "Sorry, I only tell jokes."  # Message for invalid input
+# Defining constants for the program
+PROMPT = "What do you want? "
+JOKE = """Here is a joke for you! 
+Panaversity GPT - Sophia is heading out to the grocery store. A programmer tells her: 
+get a liter of milk, and if they have eggs, get 12. 
+Sophia returns with 13 liters of milk. 
+The programmer asks why and Sophia replies: 'because they had eggs'"""
+SORRY = "Sorry I only tell jokes"
 
 def main():
-    """
-    Main function to prompt user input and display a joke if requested.
-    """
-    user_input = input(PROMPT).strip()  # Prompting user and removing extra spaces
-    if user_input.lower() == "joke":  # Checking if input is 'joke' (case-insensitive)
-        print("Here is a joke for you!")
-        joke = pyjokes.get_joke(category='neutral')  # Fetching a neutral joke
-        print(joke)
+    # Asking user for input
+    user_input = input(PROMPT).strip()
+
+    # Checking the user's response
+    if user_input == "joke":
+        print(JOKE)
     else:
-        print(SORRY)  # Informing the user about invalid input
+        print(SORRY)
 
 if __name__ == "__main__":
-    main()  # Calling the main function
+    main()
