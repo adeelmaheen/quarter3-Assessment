@@ -14,3 +14,4 @@ def generate_story():
 
 # Assuming madlibs.py has a function called generate_story()
 madlibs.generate_story()
+
