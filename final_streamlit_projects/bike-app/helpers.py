@@ -100,25 +100,59 @@ def get_dock_availability(latlon, df):
     chosen_station.append(df[df['distance'] == min(df['distance'])]['lon'].iloc[0])
     return chosen_station  # Return the chosen station
 
-import requests  # Import requests for making HTTP requests
+# import requests  # Import requests for making HTTP requests
 
-# Define the function to run OSRM and get route coordinates and duration
+# # Define the function to run OSRM and get route coordinates and duration
+# def run_osrm(chosen_station, iamhere):
+#     start = "{},{}".format(iamhere[1], iamhere[0])  # Format the start coordinates
+#     end = "{},{}".format(chosen_station[2], chosen_station[1])  # Format the end coordinates
+#     url = 'http://router.project-osrm.org/route/v1/driving/{};{}?geometries=geojson'.format(start, end)  # Create the OSRM API URL
+
+#     headers = {'Content-type': 'application/json'}
+#     r = requests.get(url, headers=headers)  # Make the API request
+#     print("Calling API ...:", r.status_code)  # Print the status code
+
+#     routejson = r.json()  # Parse the JSON response
+#     coordinates = []
+#     i = 0
+#     lst = routejson['routes'][0]['geometry']['coordinates']
+#     while i < len(lst):
+#         coordinates.append([lst[i][1], lst[i][0]])  # Extract coordinates
+#         i = i + 1
+#     duration = round(routejson['routes'][0]['duration'] / 60, 1)  # Convert duration to minutes
+
+#     return coordinates, duration  # Return the coordinates and duration
+import requests
+
 def run_osrm(chosen_station, iamhere):
-    start = "{},{}".format(iamhere[1], iamhere[0])  # Format the start coordinates
-    end = "{},{}".format(chosen_station[2], chosen_station[1])  # Format the end coordinates
-    url = 'http://router.project-osrm.org/route/v1/driving/{};{}?geometries=geojson'.format(start, end)  # Create the OSRM API URL
+    start = f"{iamhere[1]},{iamhere[0]}"
+    end = f"{chosen_station[2]},{chosen_station[1]}"
+    url = f"http://router.project-osrm.org/route/v1/driving/{start};{end}?geometries=geojson"
 
-    headers = {'Content-type': 'application/json'}
-    r = requests.get(url, headers=headers)  # Make the API request
-    print("Calling API ...:", r.status_code)  # Print the status code
+    try:
+        r = requests.get(url, headers={'Content-type': 'application/json'})
+        r.raise_for_status()  # Raises HTTPError for bad responses (4xx or 5xx)
+        routejson = r.json()
 
-    routejson = r.json()  # Parse the JSON response
-    coordinates = []
-    i = 0
-    lst = routejson['routes'][0]['geometry']['coordinates']
-    while i < len(lst):
-        coordinates.append([lst[i][1], lst[i][0]])  # Extract coordinates
-        i = i + 1
-    duration = round(routejson['routes'][0]['duration'] / 60, 1)  # Convert duration to minutes
+        if routejson.get('code') != 'Ok':
+            print(f"OSRM Error Code: {routejson.get('code')}")
+            return None, None
 
-    return coordinates, duration  # Return the coordinates and duration
+        coordinates = [
+            [coord[1], coord[0]] for coord in routejson['routes'][0]['geometry']['coordinates']
+        ]
+        duration = round(routejson['routes'][0]['duration'] / 60, 1)  # Convert to minutes
+
+        return coordinates, duration
+
+    except requests.exceptions.HTTPError as http_err:
+        print(f"HTTP error occurred: {http_err}")
+    except requests.exceptions.RequestException as req_err:
+        print(f"Request exception: {req_err}")
+    except ValueError as json_err:
+        print(f"JSON decode error: {json_err}")
+        print(f"Response content: {r.text}")
+    except Exception as err:
+        print(f"An unexpected error occurred: {err}")
+
+    return None, None
